@@ -3,10 +3,11 @@ import {Icon} from 'antd';
 import Menu from './Menu'
 import PropTypes from 'prop-types'
 import {
-    ListBox
+    ListBox,
+    SelectInput
 } from './../style'
 
-function Lists({files, command, selectItem, activeId, doubleClick}) {
+function Lists({files, command, selectItem, activeId, doubleClick, changeDetail, selectInput}) {
 
     /*右键坐标*/
     const [coords, setCoords] = useState({
@@ -34,6 +35,7 @@ function Lists({files, command, selectItem, activeId, doubleClick}) {
 
 
     useEffect(function () {
+
         function isMenu() {
             setMenu('none')
         }
@@ -43,80 +45,6 @@ function Lists({files, command, selectItem, activeId, doubleClick}) {
             document.removeEventListener('click', isMenu);
         }
     }, []);
-    /*const styles = {
-        padding: '0 10px',
-        cursor: 'pointer',
-        borderBottom: '1px solid grey'
-    };*/
-
-    /*function el(item) {
-
-        return (
-            <div
-                onContextMenu={(e) => {
-                    bindEditor(e, item.id)
-                }}
-                onClick={(e) => {
-                    selectItem(item.id);
-                    e.stopPropagation();
-                }}
-                onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    doubleClick(item.id)
-                }}
-            >
-                <div
-                    style={activeId === item.id ?
-                        {
-                            background: '#ccc',
-                            ...styles
-                        } : styles}
-                >
-                    <List.Item>
-                        <Skeleton title={true} loading={item.loading} active>
-                            <FontWidth>
-                                {
-                                    item.type === 'file' &&
-                                    <Icon style={{fontSize: '20px'}} type="file"/>
-                                }
-                                {
-                                    item.type === 'dir' &&
-                                    <Icon style={{fontSize: '20px'}} type="folder"/>
-                                }
-                            </FontWidth>
-                            <List.Item.Meta
-                                title={<p>{item.name}</p>}
-                                description={item.type === 'dir' ? '目录' : '文件'}
-                            />
-                        </Skeleton>
-                        <div>
-                            {
-                                item.type === 'dir' &&
-                                <Icon onClick={(e) => {
-                                    console.log(e.target.parentNode.parentNode)
-                                    node.current.style.display = 'block'
-                                    e.stopPropagation();
-
-                                }} type="right"/>
-
-                            }
-                        </div>
-
-                    </List.Item>
-                </div>
-                {
-                    item.children && item.children.length > 1 &&
-                    <div ref={node} style={{display: 'none'}}>
-                        <List
-                            loading={loading}
-                            dataSource={item.children}
-                            renderItem={el}
-                        />
-                    </div>
-                }
-            </div>
-        )
-    }*/
 
     function IsIcon({type}) {
         let el;
@@ -148,21 +76,28 @@ function Lists({files, command, selectItem, activeId, doubleClick}) {
                             e.stopPropagation();
                         }}
                         onDoubleClick={(e) => {
-                            console.log(item)
                             doubleClick(item);
                             e.stopPropagation();
                         }}
                     >
                         {
                             item.type === 'dir' &&
-                            <div className="arrow">
+                            <div
+                                className="arrow"
+                                onClick={e => {
+                                    changeDetail(item.id);
+                                    e.stopPropagation()
+                                }}
+                            >
                                 <Icon style={{marginRight: '5px'}} type="right"/>
                             </div>
                         }
                         <IsIcon type={item.type}/>
                         <p>{item.name}</p>
                     </div>
-                    {item.children && <Nav files={item.children}/>}
+                    <div className={item.isOpen ? 'show' : 'close'}>
+                        {item.children && <Nav files={item.children}/>}
+                    </div>
                 </ListBox>
             )
         });
@@ -171,6 +106,11 @@ function Lists({files, command, selectItem, activeId, doubleClick}) {
     return (
         <div>
             <Nav files={files}/>
+            {
+                !files.length &&
+                <SelectInput onClick={selectInput}>请选择文件</SelectInput>
+            }
+
             <Menu
                 coords={coords}
                 isMenu={isMenu}

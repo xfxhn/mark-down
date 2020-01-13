@@ -40,12 +40,6 @@ export const Editor = styled.ul`
     
 `;
 
-
-export const FontWidth = styled.div`
-  text-align: center;
-  width: 10%;
-`;
-
 export const TabBox = styled.ul`
     display: flex;
     text-align: center;
@@ -87,6 +81,13 @@ export const Title = styled.div`
 
 export const ListBox = styled.div`
     padding-left: 10px;
+    .show{
+      display: block;
+    }
+    .close{
+      display: none;
+    }
+    
     .container{
         display: flex;
         align-items: center;
@@ -99,5 +100,13 @@ export const ListBox = styled.div`
           
         }
     }
-   
+`;
+
+export const SelectInput = styled.div`
+    height: 80vh;  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
 `;

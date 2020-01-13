@@ -17,7 +17,7 @@ import {
     Title
 } from "./style/index";
 
-const {join} = require('path');
+const {ipcRenderer} = require('electron');
 
 function Index() {
 
@@ -29,11 +29,12 @@ function Index() {
     /*存储文件内容*/
     const [container, setContainer] = useState('');
 
-
     /*选中编辑菜单*/
     const [tabFiles, setTabFiles] = useState(Object.create(null));
 
-    const [files, setFiles] = useState(Object.create(null));
+    const [files, setFiles] = useState({
+        root: {children: []}
+    });
 
 
     /*当前选择的菜单id*/
@@ -43,14 +44,30 @@ function Index() {
 
     useEffect(function () {
         console.log('急促');
-        filesHelper.readDir(join(process.cwd(), 'src')).then(res => {
-            return Promise.all(res)
-        }).then(res => {
-            setFiles(toObject(res))
+        ipcRenderer.on('selectedItem', function (e, path) {
+            path = path.filePaths[0];
+            filesHelper.readDir(path).then(res => {
+                return Promise.all(res)
+            }).then(res => {
+                const pathArr = path.split('\\');
+                const obj = {
+                    ...toObject(res),
+                    root: {
+                        name: pathArr[pathArr.length - 1],
+                        type: 'dir',
+                        id: 'root',
+                        path: path,
+                        isOpen: true,
+                        children: res
+                    }
+                };
+                setFiles(obj)
+            })
+
         })
     }, []);
 
-    function editor(flag, directive, title) {
+    function editor(flag, directive, name) {
         if (flag) {
             const fileObj = {...files};
             const tabFile = {...tabFiles};
@@ -64,7 +81,7 @@ function Index() {
                     }
                     break;
                 case 'rename':
-                    fileObj[activeId].title = title;
+                    fileObj[activeId].name = name;
                     setFiles(fileObj);
                     break
             }
@@ -94,14 +111,28 @@ function Index() {
 
     }
 
+    /*删除标签*/
     function deleteTab(id) {
         const tabFile = {...tabFiles};
         delete tabFile[id];
         const arr = Object.keys(tabFile);
-        setActiveFile(null);
+        // setActiveFile(null);
         setActiveId(arr[0]);
         setTabFiles(tabFile);
 
+    }
+
+    /*开关目录*/
+    function changeDetail(id) {
+        const obj = {...files};
+        console.log(obj)
+        obj[id].isOpen = !obj[id].isOpen;
+
+        setFiles(obj)
+    }
+
+    function selectInput() {
+        ipcRenderer.send('open-directory-dialog');
     }
 
 
@@ -124,12 +155,14 @@ function Index() {
                 <Search/>
                 <List
                     command={command}
-                    files={toArray(JSON.parse(JSON.stringify(files)))}
+                    files={files['root'].children}
                     selectItem={(id) => {
                         setActiveId(id)
                     }}
                     activeId={activeId}
                     doubleClick={doubleClick}
+                    changeDetail={changeDetail}
+                    selectInput={selectInput}
                 />
             </LeftBox>
 

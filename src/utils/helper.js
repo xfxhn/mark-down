@@ -1,9 +1,12 @@
 export function toObject(arr) {
     return arr.reduce((prev, next) => {
         prev[next.id] = next;
-
-        if (next.children) {
-            prev[next.id].children = toObject(next.children)
+        if (next.children && next.children.length) {
+            prev = {
+                ...prev,
+                ...toObject(next.children)
+            }
+            // prev[next.id].children = toObject(next.children)
         }
         return prev;
     }, {})
