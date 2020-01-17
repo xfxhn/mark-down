@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import Search from './components/Search'
@@ -8,8 +8,9 @@ import Tab from './components/Tab'
 import {
     toArray,
     toObject
-} from "./../../utils/helper";
-import filesHelper from './../../utils/files'
+} from "@/utils/helper";
+import filesHelper from '@/utils/files'
+import useRenderer from '@/hooks/useRenderer'
 import {
     Box,
     LeftBox,
@@ -17,6 +18,7 @@ import {
     Title
 } from "./style/index";
 
+const {basename} = require('path');
 const {ipcRenderer} = require('electron');
 
 function Index() {
@@ -35,55 +37,32 @@ function Index() {
     const [files, setFiles] = useState({
         root: {children: []}
     });
-
-
-    /*当前选择的菜单id*/
-    const [activeId, setActiveId] = useState('');
     /*当前选择的菜单*/
     const [activeFile, setActiveFile] = useState(null);
 
-    useEffect(function () {
-        console.log('急促');
-        ipcRenderer.on('selectedItem', function (e, path) {
-            path = path.filePaths[0];
-            filesHelper.readDir(path).then(res => {
-                return Promise.all(res)
-            }).then(res => {
-                const pathArr = path.split('\\');
-                const obj = {
-                    ...toObject(res),
-                    root: {
-                        name: pathArr[pathArr.length - 1],
-                        type: 'dir',
-                        id: 'root',
-                        path: path,
-                        isOpen: true,
-                        children: res
-                    }
-                };
-                setFiles(obj)
-            })
-
-        })
-    }, []);
+    /*当前选中的ID*/
+    const [activeId, setActiveId] = useState('');
+    const [flag, setFlag] = useState(false);
 
     function editor(flag, directive, name) {
         if (flag) {
             const fileObj = {...files};
             const tabFile = {...tabFiles};
+            const id = activeId;
             switch (directive) {
                 case 'delete':
-                    delete fileObj[activeId];
+                    delete fileObj[id];
                     setFiles(fileObj);
-                    if (tabFile[activeId]) {
-                        delete tabFile[activeId];
+                    if (tabFile[id]) {
+                        delete tabFile[id];
                         setTabFiles(tabFile);
                     }
                     break;
                 case 'rename':
-                    fileObj[activeId].name = name;
+                    fileObj[id].name = name;
                     setFiles(fileObj);
-                    break
+                    break;
+                default:
             }
         }
         setVisible(false);
@@ -106,28 +85,27 @@ function Index() {
                 setActiveFile(item)
             }
             readFile(item.path);
-            setActiveFile(item)
+            setActiveFile(item);
+        } else {
+            changeDetail(item.id)
         }
-
     }
 
     /*删除标签*/
     function deleteTab(id) {
-        const tabFile = {...tabFiles};
-        delete tabFile[id];
-        const arr = Object.keys(tabFile);
-        // setActiveFile(null);
-        setActiveId(arr[0]);
-        setTabFiles(tabFile);
+        const tab = {...tabFiles};
+        delete tab[id];
+        const arr = Object.keys(tab);
+        setTabFiles(tab);
+        setActiveFile(tab[arr[0]]);
+        readFile(tab[arr[0]].path)
 
     }
 
     /*开关目录*/
     function changeDetail(id) {
         const obj = {...files};
-        console.log(obj)
         obj[id].isOpen = !obj[id].isOpen;
-
         setFiles(obj)
     }
 
@@ -135,11 +113,12 @@ function Index() {
         ipcRenderer.send('open-directory-dialog');
     }
 
-
     function handleChange(val) {
-        console.log(val)
-    }
+        if (container !== val) {
+            setFlag(true)
+        }
 
+    }
 
     function readFile(path) {
         filesHelper.readFile(path).then(res => {
@@ -149,6 +128,33 @@ function Index() {
         })
     }
 
+    useRenderer({
+        'save-edit-file': function () {
+            console.log('保存')
+        },
+        'selectedItem': function (e, path) {
+            path = path.filePaths[0];
+            if (path) {
+                filesHelper.readDir(path).then(res => {
+                    return Promise.all(res)
+                }).then(res => {
+                    const obj = {
+                        ...toObject(res),
+                        root: {
+                            name: basename(path),
+                            type: 'dir',
+                            id: 'root',
+                            path: path,
+                            isOpen: true,
+                            children: res
+                        }
+                    };
+                    setFiles(obj)
+                })
+            }
+        }
+    });
+
     return (
         <Box>
             <LeftBox>
@@ -156,10 +162,10 @@ function Index() {
                 <List
                     command={command}
                     files={files['root'].children}
-                    selectItem={(id) => {
-                        setActiveId(id)
+                    selectItem={item => {
+                        setActiveId(item.id)
                     }}
-                    activeId={activeId}
+                    activeItem={activeFile}
                     doubleClick={doubleClick}
                     changeDetail={changeDetail}
                     selectInput={selectInput}
@@ -172,13 +178,13 @@ function Index() {
                         <div>
                             <Tab
                                 files={toArray(tabFiles)}
-                                activeId={activeId}
+                                activeId={activeFile.id}
                                 deleteTab={deleteTab}
-                                changeFile={(id, path) => {
-                                    setActiveId(id);
-                                    setActiveFile(tabFiles[id]);
-                                    readFile(path)
+                                changeFile={item => {
+                                    setActiveFile(item);
+                                    readFile(item.path)
                                 }}
+                                flag={flag}
                             />
                             <div className="editor">
                                 <SimpleMDE
@@ -186,17 +192,15 @@ function Index() {
                                     value={container}
                                     onChange={handleChange}
                                     options={{
-                                        minHeight: '80vh',
+                                        minHeight: '500px'
                                     }}
                                 />
                             </div>
                         </div> :
-                        <Title>请选择文件</Title>
+                        <Title onClick={selectInput}>请选择文件</Title>
                 }
 
             </RightBox>
-
-            {/*对话框*/}
             <Model
                 flag={visible}
                 transmit={editor}

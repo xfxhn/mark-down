@@ -7,17 +7,25 @@ export const Box = styled.div`
 `;
 
 export const LeftBox = styled.div`
-  
   width: 40%;
   min-width: 20%;
+  position:relative;
+  height: 100vh;
 `;
 
 export const RightBox = styled.div`
   flex: 1;
   border: 1px solid #ccc;
+  background: black;
+  position:relative;
   .editor{
-    height: 100vh;
+    position:absolute;
+    left: 0;
+    right: 0;
+    top: 50px;
+    bottom: 0;
     background: red;
+    overflow: auto;
   }
 `;
 
@@ -69,6 +77,17 @@ export const TabBox = styled.ul`
           }
           
        }
+      :after{
+          display: ${props => props.block};
+          content: '';
+          position:absolute;
+          left: 5px;
+          top: calc(50% - 2.5px);
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: red;
+      }
     }
 `;
 
@@ -109,4 +128,14 @@ export const SelectInput = styled.div`
     justify-content: center;
     font-size: 20px;
     cursor: pointer;
+`;
+
+export const Container = styled.div`
+    position:absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: red;
+    overflow: auto;
 `;

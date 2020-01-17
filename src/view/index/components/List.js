@@ -4,10 +4,19 @@ import Menu from './Menu'
 import PropTypes from 'prop-types'
 import {
     ListBox,
-    SelectInput
+    SelectInput,
+    Container
 } from './../style'
 
-function Lists({files, command, selectItem, activeId, doubleClick, changeDetail, selectInput}) {
+function Lists({
+                   files,
+                   command,
+                   selectItem,
+                   activeItem,
+                   doubleClick,
+                   changeDetail,
+                   selectInput
+               }) {
 
     /*右键坐标*/
     const [coords, setCoords] = useState({
@@ -16,7 +25,7 @@ function Lists({files, command, selectItem, activeId, doubleClick, changeDetail,
     });
     const [isMenu, setMenu] = useState('none');
 
-    function bindEditor(e, id) {
+    function bindEditor(e, item) {
         let {clientX, clientY} = e;
         const winHeight = document.documentElement.clientHeight;
         let height = winHeight - clientY;
@@ -27,7 +36,7 @@ function Lists({files, command, selectItem, activeId, doubleClick, changeDetail,
             clientY,
             clientX
         });
-        selectItem(id)
+        selectItem(item)
         setMenu('block');
         e.stopPropagation();
         e.preventDefault();
@@ -35,7 +44,6 @@ function Lists({files, command, selectItem, activeId, doubleClick, changeDetail,
 
 
     useEffect(function () {
-
         function isMenu() {
             setMenu('none')
         }
@@ -64,15 +72,15 @@ function Lists({files, command, selectItem, activeId, doubleClick, changeDetail,
                 <ListBox key={item.id}>
                     <div
                         className="container"
-                        style={activeId === item.id ?
+                        style={selectItem.id === item.id ?
                             {
                                 background: '#ccc'
                             } : undefined}
                         onContextMenu={(e) => {
-                            bindEditor(e, item.id)
+                            bindEditor(e, item)
                         }}
                         onClick={(e) => {
-                            selectItem(item.id);
+                            selectItem(item);
                             e.stopPropagation();
                         }}
                         onDoubleClick={(e) => {
@@ -89,7 +97,10 @@ function Lists({files, command, selectItem, activeId, doubleClick, changeDetail,
                                     e.stopPropagation()
                                 }}
                             >
-                                <Icon style={{marginRight: '5px'}} type="right"/>
+                                <Icon
+                                    style={{marginRight: '5px'}}
+                                    type={item.isOpen ? 'down' : 'right'}
+                                />
                             </div>
                         }
                         <IsIcon type={item.type}/>
@@ -104,7 +115,7 @@ function Lists({files, command, selectItem, activeId, doubleClick, changeDetail,
     }
 
     return (
-        <div>
+        <Container>
             <Nav files={files}/>
             {
                 !files.length &&
@@ -128,7 +139,7 @@ function Lists({files, command, selectItem, activeId, doubleClick, changeDetail,
                     }
                 ]}
             />
-        </div>
+        </Container>
     );
 }
 

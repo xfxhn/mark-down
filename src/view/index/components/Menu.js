@@ -10,9 +10,12 @@ function Menu({coords, isMenu, item, command}) {
             {
                 item.map(item => {
                     return (
-                        <li onClick={() => {
-                            command(item.command)
-                        }} key={item.id}>{item.content}</li>
+                        <li
+                            onClick={() => {
+                                command(item.command)
+                            }}
+                            key={item.id}
+                        >{item.content}</li>
                     )
                 })
             }

@@ -4,7 +4,6 @@ const uuidv4 = require('uuid/v4');
 const files = {
     /*读取*/
     async readDir(path) {
-        console.log(path)
         const dir = await fs.readdir(path);
         return dir.map(async item => {
             const stats = await fs.stat(join(path, item));

@@ -3,22 +3,23 @@ import {
     TabBox
 } from './../style'
 
-function Tab({files, deleteTab, activeId, changeFile}) {
+function Tab({files, deleteTab, activeId, changeFile, flag}) {
     return (
-        <TabBox>
+        <TabBox block={flag ? 'block' : 'none'}>
             {
                 files.map(item => {
                     return (
                         <li
                             onClick={() => {
-                                changeFile(item.id, item.path)
+                                changeFile(item)
                             }}
                             key={item.id}
                             className={item.id === activeId ? 'current' : ''}
                         >
                             {item.name}
-                            <i onClick={() => {
-                                deleteTab(item.id)
+                            <i onClick={(e) => {
+                                deleteTab(item.id);
+                                e.stopPropagation();
                             }}>×</i>
                         </li>
                     )
