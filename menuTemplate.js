@@ -1,9 +1,5 @@
 const {app, shell, ipcMain} = require('electron');
-/*const Store = require('electron-store')
-const settingsStore = new Store({ name: 'Settings'})
 
-const qiniuIsConfiged =  ['accessKey', 'secretKey', 'bucketName'].every(key => !!settingsStore.get(key))
-let enableAutoSync = settingsStore.get('enableAutoSync')*/
 let template = [{
     label: '文件',
     submenu: [{

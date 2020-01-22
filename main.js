@@ -10,8 +10,8 @@ app.on('ready', function () {
             nodeIntegration: true
         }
     });
-    let menu = Menu.buildFromTemplate(menuTemplate)
-    Menu.setApplicationMenu(menu)
+    const menu = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menu);
     mainWindow.loadURL('http:localhost:3000')
 });
 
@@ -21,7 +21,6 @@ ipcMain.on('open-directory-dialog', function (event) {
     }).then(result => {
         if (result) {
             mainWindow.webContents.send('selectedItem', result)
-            // event.sender.send('selectedItem', result)
         }
     }).catch(err => {
         console.log(err)

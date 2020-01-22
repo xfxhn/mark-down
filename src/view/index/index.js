@@ -35,14 +35,13 @@ function Index() {
     const [tabFiles, setTabFiles] = useState(Object.create(null));
 
     const [files, setFiles] = useState({
-        root: {children: []}
+        root: []
     });
     /*当前选择的菜单*/
     const [activeFile, setActiveFile] = useState(null);
 
     /*当前选中的ID*/
     const [activeId, setActiveId] = useState('');
-    const [flag, setFlag] = useState(false);
 
     function editor(flag, directive, name) {
         if (flag) {
@@ -99,7 +98,6 @@ function Index() {
         setTabFiles(tab);
         setActiveFile(tab[arr[0]]);
         readFile(tab[arr[0]].path)
-
     }
 
     /*开关目录*/
@@ -113,9 +111,15 @@ function Index() {
         ipcRenderer.send('open-directory-dialog');
     }
 
+    /*内容改变能触发这个函数*/
     function handleChange(val) {
-        if (container !== val) {
-            setFlag(true)
+        if (val !== container) {
+            if (!tabFiles[activeFile.id].isChange) {
+                const tab = {...tabFiles};
+                tab[activeFile.id].isChange = true;
+                setTabFiles(tab);
+            }
+            setContainer(val)
         }
 
     }
@@ -130,7 +134,12 @@ function Index() {
 
     useRenderer({
         'save-edit-file': function () {
-            console.log('保存')
+
+            const tab = {...tabFiles};
+            console.log(tab[activeFile.id])
+            tab[activeFile.id].isChange = false;
+            setTabFiles(tab);
+            filesHelper.writeFile(activeFile.path, container);
         },
         'selectedItem': function (e, path) {
             path = path.filePaths[0];
@@ -140,14 +149,14 @@ function Index() {
                 }).then(res => {
                     const obj = {
                         ...toObject(res),
-                        root: {
+                        root: [{
                             name: basename(path),
                             type: 'dir',
                             id: 'root',
                             path: path,
                             isOpen: true,
                             children: res
-                        }
+                        }]
                     };
                     setFiles(obj)
                 })
@@ -155,13 +164,16 @@ function Index() {
         }
     });
 
+    console.log('徐璈风')
+
+
     return (
         <Box>
             <LeftBox>
                 <Search/>
                 <List
                     command={command}
-                    files={files['root'].children}
+                    files={files['root']}
                     selectItem={item => {
                         setActiveId(item.id)
                     }}
@@ -184,7 +196,6 @@ function Index() {
                                     setActiveFile(item);
                                     readFile(item.path)
                                 }}
-                                flag={flag}
                             />
                             <div className="editor">
                                 <SimpleMDE

@@ -3,9 +3,9 @@ import {
     TabBox
 } from './../style'
 
-function Tab({files, deleteTab, activeId, changeFile, flag}) {
+function Tab({files, deleteTab, activeId, changeFile}) {
     return (
-        <TabBox block={flag ? 'block' : 'none'}>
+        <TabBox>
             {
                 files.map(item => {
                     return (
@@ -14,13 +14,18 @@ function Tab({files, deleteTab, activeId, changeFile, flag}) {
                                 changeFile(item)
                             }}
                             key={item.id}
-                            className={item.id === activeId ? 'current' : ''}
+                            className={item.id === activeId ? 'current aa' : 'aa'}
                         >
                             {item.name}
                             <i onClick={(e) => {
                                 deleteTab(item.id);
                                 e.stopPropagation();
                             }}>×</i>
+                            {
+                                item.isChange &&
+                                <p className="aa"/>
+                            }
+
                         </li>
                     )
                 })

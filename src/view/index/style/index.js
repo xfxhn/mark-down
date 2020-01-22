@@ -62,6 +62,15 @@ export const TabBox = styled.ul`
       padding:0 30px;
       margin-right: 5px;
       position:relative;
+      .aa{
+          position:absolute;
+          left: 5px;
+          top: calc(50% - 2.5px);
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: red;
+      }
       i{
         display: none;
         font-size: 20px;
@@ -77,17 +86,6 @@ export const TabBox = styled.ul`
           }
           
        }
-      :after{
-          display: ${props => props.block};
-          content: '';
-          position:absolute;
-          left: 5px;
-          top: calc(50% - 2.5px);
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          background: red;
-      }
     }
 `;
 
