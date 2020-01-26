@@ -7,7 +7,8 @@ import Model from './components/Model'
 import Tab from './components/Tab'
 import {
     toArray,
-    toObject
+    toObject,
+    redact
 } from "@/utils/helper";
 import filesHelper from '@/utils/files'
 import useRenderer from '@/hooks/useRenderer'
@@ -18,8 +19,9 @@ import {
     Title
 } from "./style/index";
 
-const {basename} = require('path');
+const {basename, dirname, join} = require('path');
 const {ipcRenderer} = require('electron');
+const uuidv4 = require('uuid/v4');
 
 function Index() {
 
@@ -34,9 +36,7 @@ function Index() {
     /*选中编辑菜单*/
     const [tabFiles, setTabFiles] = useState(Object.create(null));
 
-    const [files, setFiles] = useState({
-        root: []
-    });
+    const [files, setFiles] = useState([]);
     /*当前选择的菜单*/
     const [activeFile, setActiveFile] = useState(null);
 
@@ -48,18 +48,53 @@ function Index() {
             const fileObj = {...files};
             const tabFile = {...tabFiles};
             const id = activeId;
+
             switch (directive) {
                 case 'delete':
-                    delete fileObj[id];
-                    setFiles(fileObj);
+                    const result1 = redact(fileObj, id, function (item) {
+                        console.log(item.path)
+                        if (item.type === 'file') {
+                            filesHelper.unlink(item.path).then(res => {
+                                setFiles(result1);
+                            });
+                        } else if (item.type === 'dir') {
+                            filesHelper.rmdir(item.path)
+                        }
+
+                    });
+
                     if (tabFile[id]) {
                         delete tabFile[id];
                         setTabFiles(tabFile);
                     }
                     break;
                 case 'rename':
-                    fileObj[id].name = name;
-                    setFiles(fileObj);
+                    const result2 = redact(fileObj, id, function (item) {
+                        const path = item.path;
+                        filesHelper.rename(path, join(dirname(path), name)).then(res => {
+                            setFiles(result2);
+                        });
+                        return {
+                            ...item,
+                            name,
+                            path: join(dirname(path), name),
+                        }
+                    });
+                    break;
+                case 'new-file':
+                    const result3 = redact(fileObj, id, function (item) {
+                        const path = item.path;
+                        filesHelper.writeFile(join(path, name)).then(res => {
+                            setFiles(result3);
+                        });
+                        return {
+                            name,
+                            path: join(dirname(path), name),
+                            id: uuidv4(),
+                            type: 'file',
+                            new: true
+                        }
+                    });
                     break;
                 default:
             }
@@ -102,9 +137,14 @@ function Index() {
 
     /*开关目录*/
     function changeDetail(id) {
-        const obj = {...files};
-        obj[id].isOpen = !obj[id].isOpen;
-        setFiles(obj)
+        const obj = {...files}
+        const result = redact(obj, id, function (item) {
+            return {
+                ...item,
+                isOpen: !item.isOpen
+            }
+        });
+        setFiles(result)
     }
 
     function selectInput() {
@@ -134,7 +174,6 @@ function Index() {
 
     useRenderer({
         'save-edit-file': function () {
-
             const tab = {...tabFiles};
             console.log(tab[activeFile.id])
             tab[activeFile.id].isChange = false;
@@ -148,23 +187,20 @@ function Index() {
                     return Promise.all(res)
                 }).then(res => {
                     const obj = {
-                        ...toObject(res),
-                        root: [{
+                        root: {
                             name: basename(path),
                             type: 'dir',
                             id: 'root',
                             path: path,
                             isOpen: true,
-                            children: res
-                        }]
+                            children: toObject(res)
+                        }
                     };
                     setFiles(obj)
                 })
             }
         }
     });
-
-    console.log('徐璈风')
 
 
     return (
@@ -173,7 +209,7 @@ function Index() {
                 <Search/>
                 <List
                     command={command}
-                    files={files['root']}
+                    files={toArray(JSON.parse(JSON.stringify(files)))}
                     selectItem={item => {
                         setActiveId(item.id)
                     }}

@@ -16,7 +16,6 @@ export const LeftBox = styled.div`
 export const RightBox = styled.div`
   flex: 1;
   border: 1px solid #ccc;
-  background: black;
   position:relative;
   .editor{
     position:absolute;
@@ -24,7 +23,6 @@ export const RightBox = styled.div`
     right: 0;
     top: 50px;
     bottom: 0;
-    background: red;
     overflow: auto;
   }
 `;
@@ -35,7 +33,7 @@ export const Editor = styled.ul`
     left: ${props => props.x}px;
     top: ${props => props.y}px;
     background: #ccc;
-    z-index: 99;
+    z-index: 999;
     li{
         width: 200px;
         height: 80px;
@@ -129,11 +127,11 @@ export const SelectInput = styled.div`
 `;
 
 export const Container = styled.div`
+    z-index: 99;
     position:absolute;
     left: 0;
-    top: 0;
+    top: 50px;
     right: 0;
     bottom: 0;
-    background: red;
     overflow: auto;
 `;

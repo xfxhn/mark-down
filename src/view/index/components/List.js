@@ -8,6 +8,37 @@ import {
     Container
 } from './../style'
 
+const edit1 = [
+    {
+        id: 1,
+        content: '删除',
+        command: 'delete'
+    },
+    {
+        id: 2,
+        content: '重命名',
+        command: 'rename'
+    }
+];
+const edit2 = [
+
+    {
+        id: 1,
+        content: '删除',
+        command: 'delete'
+    },
+    {
+        id: 2,
+        content: '重命名',
+        command: 'rename'
+    },
+    {
+        id: 3,
+        content: '新建',
+        command: 'new-file'
+    },
+];
+
 function Lists({
                    files,
                    command,
@@ -24,13 +55,22 @@ function Lists({
         clientY: 0
     });
     const [isMenu, setMenu] = useState('none');
+    const [redact, setRedact] = useState([]);
 
     function bindEditor(e, item) {
+        let redactHeight;
+        if (item.type === 'dir') {
+            setRedact(edit2);
+            redactHeight = edit2.length * 80;
+        } else {
+            setRedact(edit1);
+            redactHeight = edit1.length * 80;
+        }
         let {clientX, clientY} = e;
         const winHeight = document.documentElement.clientHeight;
         let height = winHeight - clientY;
-        if (height < 160) {
-            clientY = clientY - (160 - height)
+        if (height < redactHeight) {
+            clientY = clientY - (redactHeight - height)
         }
         setCoords({
             clientY,
@@ -115,31 +155,21 @@ function Lists({
     }
 
     return (
-        <Container>
-            <Nav files={files}/>
-            {
-                !files.length &&
-                <SelectInput onClick={selectInput}>请选择文件</SelectInput>
-            }
-
+        <div>
             <Menu
                 coords={coords}
                 isMenu={isMenu}
                 command={command}
-                item={[
-                    {
-                        id: 1,
-                        content: '删除',
-                        command: 'delete'
-                    },
-                    {
-                        id: 2,
-                        content: '重命名',
-                        command: 'rename'
-                    }
-                ]}
+                item={redact}
             />
-        </Container>
+            <Container>
+                <Nav files={files}/>
+                {
+                    !files.length &&
+                    <SelectInput onClick={selectInput}>请选择文件</SelectInput>
+                }
+            </Container>
+        </div>
     );
 }
 

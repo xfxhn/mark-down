@@ -9,6 +9,7 @@ function Model({flag, transmit, directive}) {
             title={directive}
             visible={flag}
             onOk={() => {
+                setValue('');
                 transmit(true, directive, value)
             }}
             onCancel={() => {
@@ -16,7 +17,7 @@ function Model({flag, transmit, directive}) {
             }}
         >
             {
-                directive === 'rename' &&
+                (directive === 'rename' || directive === 'new-file') &&
                 <Input
                     onChange={(e) => {
                         setValue(e.target.value)

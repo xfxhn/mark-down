@@ -4,7 +4,6 @@ const {ipcRenderer} = require('electron');
 
 function useRenderer(keyCallbackMap) {
     useEffect(function () {
-        console.log('急促');
         Object.keys(keyCallbackMap).forEach(key => {
             ipcRenderer.on(key, keyCallbackMap[key])
         });

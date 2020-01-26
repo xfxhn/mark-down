@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const fs1 = require('fs');
 const {join} = require('path');
 const uuidv4 = require('uuid/v4');
 const files = {
@@ -31,13 +32,26 @@ const files = {
         return fs.writeFile(path, content)
     },
 
-    /*删除*/
+    /*删除文件*/
     unlink(link) {
         return fs.unlink(link);
     },
     /*重命名*/
-    rename(oldName, newName) {
-        return fs.rename(oldName, newName)
+    rename(oldPath, newPath) {
+        return fs.rename(oldPath, newPath)
+    },
+    /*删除目录*/
+    rmdir(path) {
+        const files = fs1.readdirSync(path);
+        files.forEach(file => {
+            let curPath = join(path, file);
+            if (fs1.statSync(curPath).isDirectory()) {
+                this.rmdir(curPath);
+            } else {
+                fs1.unlinkSync(curPath);
+            }
+        });
+        fs1.rmdirSync(path);
     }
 };
 
